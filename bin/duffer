@@ -1,0 +1,35 @@
+#!/usr/bin/env ruby
+
+def slurp(line, identifier)
+  identifier = Regexp.escape(identifier)
+  start, count = line[/#{identifier}(\d+(,\d+)?)/, 1].split(",")
+
+  start = start.to_i
+  count = count.to_i if count
+
+  [start - 1, count]
+end
+
+def duffer(io)
+  io.each_line do |line|
+    case line
+    when /^(\+\+\+|---)/
+      # NOOP
+
+    when /^@@.+@@$/
+      @left_start, _ = slurp(line, "-")
+      @right_start, _ = slurp(line, "+")
+
+    when /^\+/
+      line = "#{@right_start += 1}\t#{line}"
+
+    when /^\-/
+      line = "#{@left_start += 1}\t#{line}"
+
+    end
+
+    print line
+  end
+end
+
+duffer(ARGF)
